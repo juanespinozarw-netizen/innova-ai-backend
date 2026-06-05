@@ -3,16 +3,17 @@ const cors = require('cors');
 
 const app = express();
 app.use(express.json());
-app.use(cors()); // permite que el frontend se conecte
+app.use(cors());
 
-// ── RUTA PRINCIPAL: proxy hacia Anthropic ──
 app.post('/chat', async (req, res) => {
   try {
+    const fetch = (await import('node-fetch')).default;
+    
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': process.env.ANTHROPIC_KEY, // guardada en Railway, nunca expuesta
+        'x-api-key': process.env.ANTHROPIC_KEY,
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify(req.body)
@@ -23,11 +24,10 @@ app.post('/chat', async (req, res) => {
 
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'Error al conectar con la IA' });
+    res.status(500).json({ error: 'Error al conectar con la IA', detail: error.message });
   }
 });
 
-// ── RUTA DE SALUD (para que Railway sepa que el server está vivo) ──
 app.get('/', (req, res) => {
   res.json({ status: 'Innova AI Backend activo ✓' });
 });
